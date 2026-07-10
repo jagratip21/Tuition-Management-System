@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Add this to the end of your global CSS file (e.g., src/index.css) */
+
+@layer components {
+  .shape-wavy-br-hero {
+    /* This is the mobile-first style (no radius) */
+    border-radius: 0;
+  }
+  
+  @screen md {
+    /* This style applies only on medium screens and larger */
+    .shape-wavy-br-hero {
+      border-radius: 0 0 15% 0;
+    }
+  }
+}
+
+@layer components {
+  .shape-wavy-br-about {
+    /* This is the mobile-first style (no radius) */
+    border-radius: 0;
+  }
+  
+  @screen md {
+    /* This style applies only on medium screens and larger */
+    .shape-wavy-br-about {
+      border-radius: 15% 0 15% 0;
+    }
+  }
+}
+
+@layer components {
+  .shape-wavy-br-services {
+    /* This is the mobile-first style (no radius) */
+    border-radius: 0;
+  }
+  
+  @screen md {
+    /* This style applies only on medium screens and larger */
+    .shape-wavy-br-services {
+      border-radius: 15% 0 0 0;
+    }
+  }
+}
