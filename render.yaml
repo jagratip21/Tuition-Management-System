@@ -1,3 +1,9 @@
+databases:
+  - name: tuition-management-db
+    plan: free
+    databaseName: tuition_management
+    user: tuition_user
+
 services:
   - type: web
     name: tuition-management-api
@@ -7,7 +13,9 @@ services:
     startCommand: npm start
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: tuition-management-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: PORT
