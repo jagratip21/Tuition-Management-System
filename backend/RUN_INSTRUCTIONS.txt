@@ -1,0 +1,312 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    UPHOMETUITION API - RUN INSTRUCTIONS                       ║
+║                         Using Prisma + PostgreSQL                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+COMPLETE SETUP GUIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+STEP 1: SETUP POSTGRESQL DATABASE
+─────────────────────────────────────────────────────────────────────────────
+
+Option A - Local PostgreSQL:
+
+1. Download from: https://www.postgresql.org/download/
+2. Install PostgreSQL
+3. Open terminal/command prompt
+4. Create database:
+   $ createdb uphometuition
+
+Option B - Using Docker (easier):
+
+$ docker run --name uphometuition-db \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=uphometuition \
+  -p 5432:5432 \
+  -d postgres:latest
+
+✓ Database is ready!
+
+
+STEP 2: UPDATE ENVIRONMENT VARIABLES
+─────────────────────────────────────────────────────────────────────────────
+
+File: .env (in project root)
+
+Change this:
+DATABASE_URL="postgresql://username:password@localhost:5432/uphometuition"
+
+Replace with your PostgreSQL credentials:
+- username = your PostgreSQL username (default: postgres)
+- password = your PostgreSQL password
+- uphometuition = database name (already created)
+
+Example (if using docker):
+DATABASE_URL="postgresql://postgres:password@localhost:5432/uphometuition"
+
+Other settings:
+JWT_SECRET="your-secret-key-change-in-production"
+PORT=3000
+
+
+STEP 3: INSTALL DEPENDENCIES
+─────────────────────────────────────────────────────────────────────────────
+
+$ npm install
+
+Wait for completion (takes 1-2 minutes)
+
+
+STEP 4: GENERATE PRISMA CLIENT
+─────────────────────────────────────────────────────────────────────────────
+
+$ npx prisma generate
+
+This creates the Prisma client for database access
+
+
+STEP 5: CREATE DATABASE TABLES
+─────────────────────────────────────────────────────────────────────────────
+
+$ npx prisma migrate deploy
+
+This creates all tables based on schema.prisma
+
+If first time setup, you might need:
+$ npx prisma migrate dev --name init
+
+
+STEP 6: START THE SERVER
+─────────────────────────────────────────────────────────────────────────────
+
+Production mode:
+$ npm start
+
+Development mode (auto-reload when you change files):
+$ npm run dev
+
+Expected output:
+─────────────────────────────────────────────────────────────────────────────
+Server is running on port 3000
+API Health: http://localhost:3000/api/health
+─────────────────────────────────────────────────────────────────────────────
+
+
+STEP 7: TEST THE API (Open NEW terminal)
+─────────────────────────────────────────────────────────────────────────────
+
+TEST 1 - Check if API is running:
+$ curl http://localhost:3000/api/health
+
+Expected: API is responding ✓
+
+TEST 2 - Register Admin Account:
+$ curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "AdminPassword123",
+    "name": "My Admin"
+  }'
+
+⭐ SAVE THE TOKEN FROM RESPONSE! You'll need it for protected endpoints.
+
+TEST 3 - Get All Tutors (Public - no auth needed):
+$ curl http://localhost:3000/api/tutors
+
+TEST 4 - Create a Tutor (requires token):
+Replace YOUR_TOKEN_HERE with token from TEST 2
+
+$ curl -X POST http://localhost:3000/api/tutors \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -F "fullName=John Doe" \
+  -F "email=john@example.com" \
+  -F "phone=9876543210" \
+  -F "location=New York" \
+  -F "expertise=Mathematics"
+
+
+ENDPOINTS SUMMARY
+═════════════════════════════════════════════════════════════════════════════
+
+PUBLIC (No Token Needed):
+├─ GET    /api/tutors                    - List all tutors
+├─ GET    /api/tutors/:id                - Get tutor by ID
+├─ GET    /api/subjects                  - List all subjects
+├─ GET    /api/subjects/:id              - Get subject by ID
+├─ GET    /api/blogs                     - List published blogs
+├─ GET    /api/blogs/:id                 - Get blog by ID
+├─ GET    /api/blogs/slug/:slug          - Get blog by slug
+├─ POST   /api/enquiries/hire-tutor      - Submit hire form
+├─ POST   /api/enquiries/join-as-tutor   - Submit join form
+├─ POST   /api/contact                   - Submit contact form
+└─ GET    /api/health                    - API health check
+
+ADMIN ONLY (Requires Token):
+├─ POST   /api/auth/register             - Create admin account
+├─ POST   /api/auth/login                - Login (get token)
+├─ GET    /api/auth/profile              - Get admin profile
+├─ POST   /api/tutors                    - Create tutor
+├─ PUT    /api/tutors/:id                - Update tutor
+├─ DELETE /api/tutors/:id                - Delete tutor
+├─ POST   /api/subjects                  - Create subject
+├─ PUT    /api/subjects/:id              - Update subject
+├─ DELETE /api/subjects/:id              - Delete subject
+├─ POST   /api/blogs                     - Create blog
+├─ PUT    /api/blogs/:id                 - Update blog
+├─ DELETE /api/blogs/:id                 - Delete blog
+├─ GET    /api/enquiries/hire-tutor      - View hire enquiries
+├─ GET    /api/enquiries/join-as-tutor   - View join enquiries
+├─ PUT    /api/enquiries/:type/:id/status - Update enquiry
+├─ GET    /api/contact                   - View contact forms
+├─ PUT    /api/contact/:id/status        - Update contact status
+└─ POST   /api/upload                    - Upload file
+
+
+DATABASE TABLES
+═════════════════════════════════════════════════════════════════════════════
+
+Automatically created:
+✓ admins                    - Admin users
+✓ tutors                    - Tutor profiles
+✓ subjects                  - Subjects/courses
+✓ blogs                     - Blog posts
+✓ hire_tutor_enquiries      - Hire tutor requests
+✓ join_as_tutor_enquiries   - Join as tutor requests
+✓ contact_us                - Contact form submissions
+
+View all data in GUI:
+$ npx prisma studio
+
+Opens at: http://localhost:5555
+
+
+USEFUL COMMANDS
+═════════════════════════════════════════════════════════════════════════════
+
+npm install              - Install dependencies
+npm start                - Start server (production)
+npm run dev              - Start server (development with auto-reload)
+npx prisma generate     - Generate Prisma client
+npx prisma migrate deploy - Create database tables
+npx prisma studio       - Open database GUI viewer
+
+
+TROUBLESHOOTING
+═════════════════════════════════════════════════════════════════════════════
+
+Problem: "Cannot connect to database"
+Solution:
+1. Check .env has correct DATABASE_URL
+2. Verify PostgreSQL is running
+3. Try direct connection: psql -U postgres -d uphometuition
+
+Problem: "Relation does not exist"
+Solution:
+$ npx prisma migrate deploy
+
+Problem: "Cannot find module"
+Solution:
+$ npm install
+
+Problem: "Port 3000 already in use"
+Solution:
+$ PORT=3001 npm start
+
+Problem: "EADDRINUSE: address already in use :::3000"
+Solution - Kill process on port 3000:
+
+Linux/Mac:
+$ kill -9 $(lsof -t -i :3000)
+
+Windows:
+$ netstat -ano | findstr :3000
+$ taskkill /PID <PID> /F
+
+Problem: Authentication token expired
+Solution:
+Login again to get new token:
+$ curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@example.com", "password": "AdminPassword123"}'
+
+
+FILE STRUCTURE
+═════════════════════════════════════════════════════════════════════════════
+
+project/
+├── src/
+│   ├── server.js                 ← Main app file
+│   ├── controllers/              ← Business logic
+│   │   ├── authController.js
+│   │   ├── tutorController.js
+│   │   ├── subjectController.js
+│   │   ├── blogController.js
+│   │   ├── enquiryController.js
+│   │   └── contactController.js
+│   ├── routes/                   ← API endpoints
+│   ├── middleware/               ← Auth & upload
+│   └── utils/                    ← Helpers
+├── prisma/
+│   ├── schema.prisma             ← Database schema
+│   └── migrations/               ← Migration files
+├── uploads/                      ← Uploaded files
+├── .env                          ← Config (UPDATE THIS!)
+├── package.json                  ← Dependencies
+└── API_DOCUMENTATION.md          ← API reference
+
+
+COMPLETE QUICK SETUP (Copy & Paste)
+═════════════════════════════════════════════════════════════════════════════
+
+1. Create database:
+   $ createdb uphometuition
+
+2. Update .env with your PostgreSQL connection string
+
+3. Run all at once:
+   $ npm install && npx prisma generate && npx prisma migrate deploy
+
+4. Start server:
+   $ npm start
+
+5. Test (new terminal):
+   $ curl http://localhost:3000/api/health
+
+Done! ✓
+
+
+NEXT STEPS
+═════════════════════════════════════════════════════════════════════════════
+
+1. Read API_DOCUMENTATION.md for all endpoints
+2. Create admin account (use Test 2 from above)
+3. Create subjects, tutors, blogs through API
+4. Integrate with your frontend
+5. Deploy to production
+
+
+DATABASE BACKUP
+═════════════════════════════════════════════════════════════════════════════
+
+Backup:
+$ pg_dump uphometuition > backup.sql
+
+Restore:
+$ psql uphometuition < backup.sql
+
+
+DOCUMENTATION FILES
+═════════════════════════════════════════════════════════════════════════════
+
+📄 API_DOCUMENTATION.md    - Complete API reference with examples
+📄 SETUP_GUIDE.md          - Detailed setup guide
+📄 QUICK_START.md          - 5-minute quick start
+📄 RUN_INSTRUCTIONS.txt    - This file!
+
+
+═════════════════════════════════════════════════════════════════════════════
+Your Prisma API is ready! 🚀
+
+Start with: npm install && npm start
+═════════════════════════════════════════════════════════════════════════════

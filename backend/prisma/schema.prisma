@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tutor {
+  id         String   @id @default(uuid())
+  fullName   String
+  email      String   @unique
+  phone      String
+  location   String
+  expertise  String
+  experience String?
+  bio        String?
+  imageUrl   String?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Subject {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  imageUrl    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Blog {
+  id         String   @id @default(uuid())
+  title      String
+  slug       String   @unique
+  content    String
+  excerpt    String?
+  coverImage String?
+  author     String?
+  published  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model HireTutorEnquiry {
+  id        String   @id @default(uuid())
+  fullName  String
+  phone     String
+  email     String
+  location  String
+  subject   String
+  message   String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+}
+
+model JoinAsTutorEnquiry {
+  id        String   @id @default(uuid())
+  fullName  String
+  phone     String
+  email     String
+  location  String
+  expertise String
+  message   String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+}
+
+model ContactUs {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+}
