@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { api } from "../lib/api";
 
 function Services() {
   const [subjects, setSubjects] = useState([]);
@@ -71,10 +72,7 @@ function Services() {
 
     async function fetchSubjects() {
       try {
-        const response = await fetch(
-          "https://uphometuition-backend.onrender.com/api/subjects"
-        );
-        const result = await response.json();
+        const result = await api.get("/subjects");
 
         if (result.success && result.data.length > 0) {
           const apiSubjects = result.data.slice(0, 7).map((subj) => ({

@@ -1,62 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { API_ORIGIN } from '../lib/api';
 
-const API_BASE = 'https://uphometuition-backend.onrender.com';
+const API_BASE = API_ORIGIN;
 
+// Status options (for dropdown)
 const STATUS_MAP = {
-  'New': 'pending',
-  'Complete': 'complete',
+  'New': 'new',
+  'Pending': 'pending',
   'Not Interested': 'not_interested',
-  'Irrelevant': 'irrelevant'
+  'Out of Area': 'out_of_area',
+  'Complete': 'complete',
 };
 
-// ---------- Hire Enquiry Form ----------
-function HireEnquiryForm({ onSubmit, initialData, onCancel }) {
-  const [form, setForm] = useState(initialData || {
-    fullName: '',
-    phone: '',
-    email: '',
-    location: '',
-    subject: '',
-    message: ''
-  });
-
-  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
-  const handleSubmit = e => {
-    e.preventDefault();
-    onSubmit(form);
-  };
-
-  return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
-      <input name="fullName" value={form.fullName} onChange={handleChange} placeholder="Full Name" className="w-full border p-2 rounded" required />
-      <input name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" className="w-full border p-2 rounded" required />
-      <input name="email" value={form.email} onChange={handleChange} placeholder="Email" className="w-full border p-2 rounded" required />
-      <input name="location" value={form.location} onChange={handleChange} placeholder="Location" className="w-full border p-2 rounded" required />
-      <input name="subject" value={form.subject} onChange={handleChange} placeholder="Subject" className="w-full border p-2 rounded" required />
-      <textarea name="message" value={form.message} onChange={handleChange} placeholder="Message" className="w-full border p-2 rounded" required />
-      <div className="flex gap-2 justify-center">
-        <button type="submit" className="bg-[#cfac33] text-white px-5 py-2 rounded font-medium hover:bg-[#b8932b] transition">
-          {initialData ? 'Update' : 'Create'}
-        </button>
-        {onCancel && (
-          <button type="button" className="bg-gray-200 px-5 py-2 rounded font-medium hover:bg-gray-300 transition" onClick={onCancel}>
-            Cancel
-          </button>
-        )}
-      </div>
-    </form>
-  );
-}
-
-// ---------- Hire Enquiry Actions ----------
-function HireEnquiryActions({ enquiry, handleDelete, handleStatusUpdate }) {
+// ---------- Enquiry Actions ----------
+function EnquiryActions({ enquiry, handleDelete, handleStatusUpdate }) {
   const [open, setOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(
     Object.keys(STATUS_MAP).find(key => STATUS_MAP[key] === enquiry.status) || 'New'
   );
   const [loading, setLoading] = useState(false);
-
   const statuses = Object.keys(STATUS_MAP);
 
   const handleStatusClick = async (statusLabel) => {
@@ -82,7 +45,7 @@ function HireEnquiryActions({ enquiry, handleDelete, handleStatusUpdate }) {
 
   return (
     <div className="flex items-center gap-2 justify-center relative">
-      {/* Status Dropdown */}
+      {/* Status dropdown */}
       <div className="relative">
         <button
           onClick={() => setOpen(!open)}
@@ -115,7 +78,7 @@ function HireEnquiryActions({ enquiry, handleDelete, handleStatusUpdate }) {
         )}
       </div>
 
-      {/* Delete Button */}
+      {/* Delete button */}
       <button
         onClick={handleDeleteClick}
         disabled={loading}
@@ -133,26 +96,24 @@ function HireEnquiryActions({ enquiry, handleDelete, handleStatusUpdate }) {
   );
 }
 
-// ---------- Main Hire Enquiries Module ----------
-function HireEnquiriesModule() {
+// ---------- Main Join Tutor Enquiry Module ----------
+function JoinTutorEnquiriesModule() {
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-
   const token = localStorage.getItem('token');
 
+  // Fetch all enquiries
   const fetchEnquiries = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/enquiries/hire-tutor`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch(`${API_BASE}/api/enquiries/join-as-tutor`, {
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await res.json();
       if (data.success) setEnquiries(data.data);
       else setEnquiries([]);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to fetch enquiries:', err);
       setEnquiries([]);
     }
     setLoading(false);
@@ -160,25 +121,12 @@ function HireEnquiriesModule() {
 
   useEffect(() => { fetchEnquiries(); }, []);
 
-  const handleCreate = async (enquiry) => {
-    try {
-      await fetch(`${API_BASE}/api/enquiry/hire-tutor`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(enquiry)
-      });
-      setShowForm(false);
-      fetchEnquiries();
-    } catch (err) {
-      console.error('Failed to create enquiry:', err);
-    }
-  };
-
+  // Delete enquiry
   const handleDelete = async (id) => {
     try {
-      await fetch(`${API_BASE}/api/enquiry/hire/${id}`, {
+      await fetch(`${API_BASE}/api/enquiries/join/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       fetchEnquiries();
     } catch (err) {
@@ -186,13 +134,14 @@ function HireEnquiriesModule() {
     }
   };
 
+  // Update status
   const handleStatusUpdate = async (id, statusLabel) => {
     try {
       const status = STATUS_MAP[statusLabel];
-      const res = await fetch(`${API_BASE}/api/enquiry/hire/${id}/status`, {
+      const res = await fetch(`${API_BASE}/api/enquiries/join/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status }),
       });
 
       const data = await res.json();
@@ -207,27 +156,14 @@ function HireEnquiriesModule() {
   return (
     <div className="p-8 bg-[#ffffff] rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-[#23293a] mb-6 border-b-2 border-[#cfac33] pb-2">
-        Hire Tutor Enquiries
+        Join Tutor Enquiries Management
       </h2>
-
-      {showForm && (
-        <div className="mb-8 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-          <h3 className="text-xl font-semibold text-[#23293a] mb-4 text-center">
-            {editing ? 'Edit Hire Enquiry' : 'Add New Hire Enquiry'}
-          </h3>
-          <HireEnquiryForm
-            onSubmit={handleCreate}
-            initialData={editing}
-            onCancel={() => { setShowForm(false); setEditing(null); }}
-          />
-        </div>
-      )}
 
       {loading ? (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#cfac33] mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
+            <p className="text-gray-600">Loading enquiries...</p>
           </div>
         </div>
       ) : (
@@ -239,34 +175,36 @@ function HireEnquiriesModule() {
                 <th className="p-3 font-semibold text-left">Email</th>
                 <th className="p-3 font-semibold text-left">Phone</th>
                 <th className="p-3 font-semibold text-left">Location</th>
-                <th className="p-3 font-semibold text-left">Subject</th>
-                <th className="p-3 font-semibold text-left">Message</th>
+                <th className="p-3 font-semibold text-left">Expertise</th>
+                <th className="p-3 font-semibold text-left">class</th>
                 <th className="p-3 font-semibold text-center">Status / Actions</th>
               </tr>
             </thead>
             <tbody>
-              {enquiries.length > 0 ? (
-                [...enquiries].map((enquiry, index) => (
-                  <tr key={enquiry.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-[#f3f1eb]'} hover:bg-[#ede9dd] transition`}>
-                    <td className="p-3 border-t">{enquiry.fullName}</td>
-                    <td className="p-3 border-t">{enquiry.email}</td>
-                    <td className="p-3 border-t">{enquiry.phone}</td>
-                    <td className="p-3 border-t">{enquiry.location}</td>
-                    <td className="p-3 border-t">{enquiry.subject}</td>
-                    <td className="p-3 border-t">{enquiry.message}</td>
-                    <td className="p-3 border-t text-center">
-                      <HireEnquiryActions
-                        enquiry={enquiry}
-                        handleDelete={handleDelete}
-                        handleStatusUpdate={handleStatusUpdate}
-                      />
-                    </td>
-                  </tr>
-                ))
-              ) : (
+              {[...enquiries].reverse().map((enquiry, index) => (
+                <tr
+                  key={enquiry.id}
+                  className={`${index % 2 === 0 ? 'bg-white' : 'bg-[#f3f1eb]'} hover:bg-[#ede9dd] transition`}
+                >
+                  <td className="p-3 border-t">{enquiry.fullName}</td>
+                  <td className="p-3 border-t">{enquiry.email}</td>
+                  <td className="p-3 border-t">{enquiry.phone}</td>
+                  <td className="p-3 border-t">{enquiry.location}</td>
+                  <td className="p-3 border-t">{enquiry.expertise}</td>
+                  <td className="p-3 border-t">{enquiry.message}</td>
+                  <td className="p-3 border-t text-center">
+                    <EnquiryActions
+                      enquiry={enquiry}
+                      handleDelete={handleDelete}
+                      handleStatusUpdate={handleStatusUpdate}
+                    />
+                  </td>
+                </tr>
+              ))}
+              {enquiries.length === 0 && !loading && (
                 <tr>
                   <td colSpan="7" className="text-center p-4 text-[#bfa77a] font-medium">
-                    No hire enquiries found.
+                    No Join Tutor enquiries found.
                   </td>
                 </tr>
               )}
@@ -278,4 +216,4 @@ function HireEnquiriesModule() {
   );
 }
 
-export default HireEnquiriesModule;
+export default JoinTutorEnquiriesModule;

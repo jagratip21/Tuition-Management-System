@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import fallbackImg from "../assets/lawyer-deafult.jpg";
+import { api, assetUrl } from "../lib/api";
 
 function TeacherCard({ teacher }) {
   return (
@@ -39,20 +40,17 @@ function HomeTeacherTeam() {
   useEffect(() => {
     async function fetchTutors() {
       try {
-        const response = await fetch(
-          "https://uphometuition-backend.onrender.com/api/tutors"
-        );
-        const result = await response.json();
+        const result = await api.get("/tutors");
 
         if (result.success && result.data.length > 0) {
           const apiTeachers = result.data.map((tutor) => ({
-            id: tutor._id,
+            id: tutor.id,
             fullName: tutor.fullName,
             expertise: tutor.expertise,
             experience: tutor.experience,
             image:
               tutor.imageUrl &&
-              `https://uphometuition-backend.onrender.com${tutor.imageUrl}`,
+              assetUrl(tutor.imageUrl),
           }));
 
           setTeachers(apiTeachers);

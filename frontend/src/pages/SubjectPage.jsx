@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import fallbackImg from "../assets/lawyer-deafult.jpg";
+import { api, assetUrl } from "../lib/api";
 
 function SubjectCard({ subject, image }) {
   return (
@@ -74,17 +75,14 @@ function SubjectsPage() {
 
     async function fetchSubjects() {
       try {
-        const response = await fetch(
-          "https://uphometuition-backend.onrender.com/api/subjects"
-        );
-        const result = await response.json();
+        const result = await api.get("/subjects");
 
         if (result.success && result.data.length > 0) {
           const apiSubjects = result.data.map((subj) => ({
             name: subj.name,
             description: subj.description,
             image: subj.imageUrl
-              ? `https://uphometuition-backend.onrender.com${subj.imageUrl}`
+              ? assetUrl(subj.imageUrl)
               : fallbackImg,
           }));
 

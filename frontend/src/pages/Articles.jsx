@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { api, assetUrl } from "../lib/api";
 
 function Articles() {
   const [articles, setArticles] = useState([]);
@@ -32,8 +33,7 @@ function Articles() {
     setArticles(dummyArticles);
 
     // Fetch blogs from API
-    fetch("https://uphometuition-backend.onrender.com/api/blogs")
-      .then((res) => res.json())
+    api.get("/blogs")
       .then((data) => {
         if (data.success && data.data) {
           const apiArticles = data.data.map((blog) => ({
@@ -42,7 +42,7 @@ function Articles() {
             author: blog.author || "Admin",
             date: new Date(blog.createdAt).toLocaleDateString(),
             image: blog.coverImage
-              ? `https://uphometuition-backend.onrender.com${blog.coverImage}`
+              ? assetUrl(blog.coverImage)
               : "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80",
           }));
 

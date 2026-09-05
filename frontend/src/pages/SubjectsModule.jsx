@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import ImageUploader from '../components/ImageUploader';
 import { FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { API_ORIGIN } from '../lib/api';
 
-const API_BASE = 'https://uphometuition-backend.onrender.com';
+const API_BASE = API_ORIGIN;
 
-// ---------- Tutor Form ----------
-function TutorForm({ onSubmit, initialData, onCancel }) {
+// ---------- Subject Form ----------
+function SubjectForm({ onSubmit, initialData, onCancel }) {
   const [form, setForm] = useState(initialData || {
-    fullName: '',
-    phone: '',
-    email: '',
-    location: '',
-    expertise: '',
+    name: '',
+    description: '',
     image: null,
     imagePreview: ''
   });
@@ -42,7 +40,7 @@ function TutorForm({ onSubmit, initialData, onCancel }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!form.fullName || !form.phone || !form.email || !form.location || !form.expertise) {
+    if (!form.name || !form.description) {
       setError('All fields are required.');
       return;
     }
@@ -50,11 +48,8 @@ function TutorForm({ onSubmit, initialData, onCancel }) {
     setError('');
 
     const formData = new FormData();
-    formData.append('fullName', form.fullName);
-    formData.append('phone', form.phone);
-    formData.append('email', form.email);
-    formData.append('location', form.location);
-    formData.append('expertise', form.expertise);
+    formData.append('name', form.name);
+    formData.append('description', form.description);
     if (form.image instanceof File) formData.append('image', form.image);
 
     onSubmit(formData);
@@ -65,39 +60,19 @@ function TutorForm({ onSubmit, initialData, onCancel }) {
       {error && <div className="text-red-600 text-sm">{error}</div>}
 
       <input
-        name="fullName"
-        value={form.fullName}
+        name="name"
+        value={form.name}
         onChange={handleChange}
-        placeholder="Full Name"
+        placeholder="Subject Name"
         className="w-full border p-2 rounded"
       />
-      <input
-        name="phone"
-        value={form.phone}
+
+      <textarea
+        name="description"
+        value={form.description}
         onChange={handleChange}
-        placeholder="Phone Number"
-        className="w-full border p-2 rounded"
-      />
-      <input
-        name="email"
-        value={form.email}
-        onChange={handleChange}
-        placeholder="Email"
-        className="w-full border p-2 rounded"
-      />
-      <input
-        name="location"
-        value={form.location}
-        onChange={handleChange}
-        placeholder="Location"
-        className="w-full border p-2 rounded"
-      />
-      <input
-        name="expertise"
-        value={form.expertise}
-        onChange={handleChange}
-        placeholder="Expertise"
-        className="w-full border p-2 rounded"
+        placeholder="Description"
+        className="w-full border p-2 rounded h-32 resize-none overflow-y-auto"
       />
 
       <div>
@@ -134,34 +109,34 @@ function TutorForm({ onSubmit, initialData, onCancel }) {
   );
 }
 
-// ---------- Tutor Module ----------
-function TutorModule() {
-  const [tutors, setTutors] = useState([]);
+// ---------- Subjects Module ----------
+function SubjectsModule() {
+  const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
   const token = localStorage.getItem('token');
 
-  const fetchTutors = async () => {
+  const fetchSubjects = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/tutors`);
+      const res = await fetch(`${API_BASE}/api/subjects`);
       const data = await res.json();
-      if (data.success && Array.isArray(data.data)) setTutors(data.data);
-      else setTutors([]);
+      if (data.success && Array.isArray(data.data)) setSubjects(data.data);
+      else setSubjects([]);
     } catch (err) {
       console.error(err);
-      setTutors([]);
+      setSubjects([]);
     }
     setLoading(false);
   };
 
-  useEffect(() => { fetchTutors(); }, []);
+  useEffect(() => { fetchSubjects(); }, []);
 
   const handleCreate = async (formData) => {
     try {
-      const res = await fetch(`${API_BASE}/api/tutors`, {
+      const res = await fetch(`${API_BASE}/api/subjects`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -169,17 +144,17 @@ function TutorModule() {
       const data = await res.json();
       if (data.success) {
         setShowModal(false);
-        fetchTutors();
-      } else alert(data.message || 'Failed to create tutor');
+        fetchSubjects();
+      } else alert(data.message || 'Failed to create subject');
     } catch (err) {
-      console.error('Create tutor error:', err);
+      console.error('Create subject error:', err);
     }
   };
 
   const handleUpdate = async (formData) => {
     if (!editing || !editing.id) return;
     try {
-      const res = await fetch(`${API_BASE}/api/tutors/${editing.id}`, {
+      const res = await fetch(`${API_BASE}/api/subjects/${editing.id}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -188,26 +163,26 @@ function TutorModule() {
       if (data.success) {
         setEditing(null);
         setShowModal(false);
-        fetchTutors();
-      } else alert(data.message || 'Failed to update tutor');
+        fetchSubjects();
+      } else alert(data.message || 'Failed to update subject');
     } catch (err) {
-      console.error('Update tutor error:', err);
+      console.error('Update subject error:', err);
     }
   };
 
   const handleDelete = async (id) => {
     if (!id) return;
-    if (!window.confirm('Are you sure you want to delete this tutor?')) return;
+    if (!window.confirm('Are you sure you want to delete this subject?')) return;
     try {
-      const res = await fetch(`${API_BASE}/api/tutors/${id}`, {
+      const res = await fetch(`${API_BASE}/api/subjects/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      if (data.success) fetchTutors();
-      else alert(data.message || 'Failed to delete tutor');
+      if (data.success) fetchSubjects();
+      else alert(data.message || 'Failed to delete subject');
     } catch (err) {
-      console.error('Delete tutor error:', err);
+      console.error('Delete subject error:', err);
     }
   };
 
@@ -215,13 +190,13 @@ function TutorModule() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-[#23293a] border-b-2 border-[#cfac33] pb-2">
-          Tutors Management
+          Subjects Management
         </h2>
         <button
           className="bg-[#cfac33] text-white px-4 py-2 rounded"
           onClick={() => { setShowModal(true); setEditing(null); }}
         >
-          Add Tutor
+          Add Subject
         </button>
       </div>
 
@@ -230,9 +205,9 @@ function TutorModule() {
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 overflow-y-auto max-h-[90vh]">
             <h3 className="text-lg font-semibold text-[#23293a] mb-4 text-center">
-              {editing ? 'Edit Tutor' : 'Add New Tutor'}
+              {editing ? 'Edit Subject' : 'Add New Subject'}
             </h3>
-            <TutorForm
+            <SubjectForm
               onSubmit={editing ? handleUpdate : handleCreate}
               initialData={editing}
               onCancel={() => { setShowModal(false); setEditing(null); }}
@@ -254,26 +229,32 @@ function TutorModule() {
           <table className="w-full border border-gray-200">
             <thead>
               <tr className="bg-[#23293a] text-white">
-                <th className="p-3 font-semibold text-left">Name</th>
-                <th className="p-3 font-semibold text-left">Phone</th>
-                <th className="p-3 font-semibold text-left">Email</th>
-                <th className="p-3 font-semibold text-left">Location</th>
-                <th className="p-3 font-semibold text-left">Expertise</th>
+                <th className="p-3 font-semibold text-left">Subject Name</th>
+                <th className="p-3 font-semibold text-left">class & Board, competitive Exam</th>
                 <th className="p-3 font-semibold text-center">Image</th>
                 <th className="p-3 font-semibold text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {[...tutors].reverse().map((item, index) => (
+              {[...subjects].reverse().map((item, index) => (
                 <tr
                   key={item.id}
                   className={`${index % 2 === 0 ? 'bg-white' : 'bg-[#f3f1eb]'} hover:bg-[#ede9dd] transition`}
                 >
-                  <td className="p-3 border-t text-left">{item.fullName}</td>
-                  <td className="p-3 border-t text-left">{item.phone}</td>
-                  <td className="p-3 border-t text-left">{item.email}</td>
-                  <td className="p-3 border-t text-left">{item.location}</td>
-                  <td className="p-3 border-t text-left">{item.expertise}</td>
+                  <td className="p-3 border-t text-left">{item.name}</td>
+                  <td className="p-3 border-t text-left">
+                    <div
+                      className="text-sm text-gray-700 px-2 overflow-hidden"
+                      style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        lineHeight: '1.5',
+                      }}
+                    >
+                      {item.description}
+                    </div>
+                  </td>
                   <td className="p-3 border-t text-center">
                     {item.imageUrl
                       ? <img src={`${API_BASE}${item.imageUrl}`} alt="" className="w-12 h-12 object-cover rounded-full mx-auto" />
@@ -295,10 +276,10 @@ function TutorModule() {
                   </td>
                 </tr>
               ))}
-              {tutors.length === 0 && (
+              {subjects.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="text-center p-4 text-[#cfac33]">
-                    No tutors found.
+                  <td colSpan="4" className="text-center p-4 text-[#cfac33]">
+                    No subjects found.
                   </td>
                 </tr>
               )}
@@ -310,4 +291,4 @@ function TutorModule() {
   );
 }
 
-export default TutorModule;
+export default SubjectsModule;

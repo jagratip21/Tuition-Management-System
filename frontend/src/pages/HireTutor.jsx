@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import hireTutorImg from "../assets/HeroSection/hero3.jpg"; // Background image
+import { api } from "../lib/api";
 
 function HireTutorForm() {
   const [form, setForm] = useState({
@@ -23,20 +24,8 @@ function HireTutorForm() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "https://uphometuition-backend.onrender.com/api/enquiries/hire-tutor",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(form),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
+      await api.post("/enquiries/hire-tutor", form);
+      {
         setSubmitted(true);
         setForm({
           fullName: "",
@@ -46,8 +35,6 @@ function HireTutorForm() {
           subject: "",
           message: "",
         });
-      } else {
-        alert(`❌ Failed: ${data.error || "Something went wrong."}`);
       }
     } catch (error) {
       alert(`❌ Error: ${error.message}`);

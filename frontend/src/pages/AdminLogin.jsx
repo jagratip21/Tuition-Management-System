@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../lib/api';
 
 function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -25,16 +26,7 @@ function AdminLogin() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        'https://uphometuition-backend.onrender.com/api/auth/login',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        }
-      );
-
-      const result = await response.json();
+      const result = await api.post('/auth/login', { email, password });
 
       if (result.success) {
         // ✅ Save token to localStorage
@@ -45,7 +37,7 @@ function AdminLogin() {
         setError(result.error || 'Invalid credentials.');
       }
     } catch (err) {
-      setError('Something went wrong. Please try again later.');
+      setError(err.message || 'Something went wrong. Please try again later.');
     } finally {
       setLoading(false);
     }

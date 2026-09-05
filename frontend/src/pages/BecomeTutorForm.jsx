@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import imgTutor from "../assets/becomeTutor.jpg";
+import { api } from "../lib/api";
 
 function BecomeTutorForm() {
   const [formData, setFormData] = useState({
@@ -23,23 +24,9 @@ function BecomeTutorForm() {
     setStatus("loading");
 
     try {
-      const response = await fetch(
-        "https://uphometuition-backend.onrender.com/api/enquiries/join-as-tutor",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      const result = await response.json();
-
-      if (result.success) {
-        setStatus("success");
-      } else {
-        setStatus("error");
-      }
-    } catch (error) {
+      await api.post("/enquiries/join-as-tutor", formData);
+      setStatus("success");
+    } catch {
       setStatus("error");
     }
   };

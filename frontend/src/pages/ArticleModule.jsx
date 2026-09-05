@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import ImageUploader from '../components/ImageUploader';
 import { FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { API_ORIGIN } from '../lib/api';
 
-const API_BASE = 'https://uphometuition-backend.onrender.com';
+const API_BASE = API_ORIGIN;
 
 // ---------- Blog Form ----------
 function BlogForm({ onSubmit, initialData, onCancel }) {
